@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 # Importando las clases SocketIO y emit del módulo flask_socketio
 from flask_socketio import SocketIO, emit
-
+from confiBD.conexionBD import connectionBD
 from funciones import *  # Importando mis Funciones
 
 
@@ -26,7 +26,24 @@ def handle_disconnect():
 # Definiendo mi ruta de Inicio
 @app.route('/')
 def index():
-    lista_mensajes = lista_mensajes_chat() or []
+    """ **CAMBIO REALIZADO AQUÍ**
+    Ahora usamos `connectionBD` para conectarnos a la base de datos
+    y obtener los mensajes almacenados.
+    """
+    conexion = connectionBD()
+    if not conexion:
+        return "Error al conectar a la base de datos", 500
+
+    try:
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM mensajes")  # **Consulta para obtener mensajes**
+        lista_mensajes = cursor.fetchall()
+    except Exception as e:
+        print(f"Error ejecutando consulta: {e}")
+        lista_mensajes = []
+    finally:
+        conexion.close()  # **Cerramos la conexión después de usarla**
+
     return render_template('public/inicio.html', lista_mensajes=lista_mensajes)
 
 
@@ -38,13 +55,25 @@ en el lado del servidor y mostrar el mensaje recibido en la consola del servidor
 
 @socketio.on('mensaje_chat')
 def recibir_mensaje(mensaje_chat):
-    # print('Recibiendo mensaje: ' + mensaje_chat)
-    respuesta_procesar_form = procesar_form_chat(mensaje_chat)
-    """ 
-    Emitiendo el resultado del template mensajes_chat.html directamente al cliente en lugar de convertirlo a JSON o una respuesta en particular
+    """ **CAMBIO REALIZADO AQUÍ**
+    Ahora guardamos los mensajes recibidos en la base de datos.
     """
-    emit('mensaje_chat', render_template('public/mensajes_chat.html',
-         lista_mensajes=respuesta_procesar_form), broadcast=True)
+    conexion = connectionBD()
+    if not conexion:
+        emit('error', {'message': 'Error al conectar a la base de datos'}, broadcast=True)
+        return
+
+    try:
+        cursor = conexion.cursor()
+        cursor.execute("INSERT INTO mensajes (mensaje) VALUES (%s)", (mensaje_chat,))  # **Insertamos mensaje**
+        conexion.commit()
+    except Exception as e:
+        print(f"Error al insertar mensaje: {e}")
+    finally:
+        conexion.close()  # **Cerramos la conexión después de usarla**
+
+    # **Emitimos el mensaje al cliente después de guardarlo**
+    emit('mensaje_chat', mensaje_chat, broadcast=True)
 
 
 # Arrancando aplicacion Flask
@@ -55,3 +84,4 @@ if __name__ == '__main__':
     se iniciará y estará listo para recibir conexiones y manejar eventos de socket
     """
     socketio.run(app, debug=True, port=5100)
+    

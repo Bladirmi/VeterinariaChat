@@ -20,3 +20,4 @@ def connectionBD():
             return connection
     except mysql.connector.Error as e:
         print(f"Error al conectar a la BD: {e}")
+        return None
