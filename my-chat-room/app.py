@@ -1,9 +1,11 @@
+from dotenv import load_dotenv
 from flask import Flask, render_template
 # Importando las clases SocketIO y emit del módulo flask_socketio
 from flask_socketio import SocketIO, emit
 from confiBD.conexionBD import connectionBD
 from funciones import *  # Importando mis Funciones
 
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -84,4 +86,3 @@ if __name__ == '__main__':
     se iniciará y estará listo para recibir conexiones y manejar eventos de socket
     """
     socketio.run(app, debug=True, port=5100)
-    
