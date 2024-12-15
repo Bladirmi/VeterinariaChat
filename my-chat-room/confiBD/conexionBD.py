@@ -4,6 +4,8 @@ import os
 import mysql.connector
 from mysql.connector.errors import Error
 
+load_dotenv()
+
 # Cargar variables del archivo .env
 
 def connectionBD():
@@ -21,3 +23,7 @@ def connectionBD():
     except mysql.connector.Error as e:
         print(f"Error al conectar a la BD: {e}")
         return None
+    finally:
+        # Asegúrate de cerrar la conexión si es exitosa
+        if connection and connection.is_connected():
+            connection.close()

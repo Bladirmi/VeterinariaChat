@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template
 # Importando las clases SocketIO y emit del módulo flask_socketio
 from flask_socketio import SocketIO, emit
-from confiBD.conexionBD import connectionBD
+from .confiBD.conexionBD import connectionBD
 from funciones import *  # Importando mis Funciones
 
 load_dotenv()
