@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 from flask import Flask, render_template
 # Importando las clases SocketIO y emit del módulo flask_socketio
@@ -85,4 +86,5 @@ if __name__ == '__main__':
     Esto significa que cuando ejecutes este archivo específico, el servidor Flask-SocketIO 
     se iniciará y estará listo para recibir conexiones y manejar eventos de socket
     """
-    socketio.run(app, debug=True, port=5100)
+    port = int(os.environ.get('PORT', 5100))
+    socketio.run(app, debug=True, port=port)
